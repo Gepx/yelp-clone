@@ -1,5 +1,6 @@
 const ejsMate = require("ejs-mate");
 const express = require("express");
+const ErrorHandler = require("./utils/ErrorHandler");
 const methodOverride = require("method-override");
 const mongoose = require("mongoose");
 const wrapAsync = require("./utils/wrapAsync");
@@ -8,6 +9,7 @@ const app = express();
 
 // models
 const Place = require("./models/place");
+// const ExpressError = require("./utils/ErrorHandler");
 
 // connect to mongoDB
 mongoose
@@ -90,8 +92,15 @@ app.delete(
   })
 );
 
+app.all("*", (req, res, next) => {
+  next(new ErrorHandler("Page not found", 404));
+});
+
 app.use((err, req, res, next) => {
-  res.status(500).send("Something broke!");
+  const { statusCode = 500 } = err;
+  if (!err.message) err.message = "Oh No, Something Went Wrong!";
+  res.status(statusCode).render("error", { err });
+  // res.status(statusCode).send("Something Broke!");
 });
 
 // app.get("/seed/place", async (req, res) => {
