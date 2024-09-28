@@ -2,10 +2,17 @@
 
 <h1 class="text-center">Add Place</h1>
 <div class="col-6 offset-3">
-  <form action="/places" method="post">
+  <form action="/places" method="post" class="validated-form" novalidate>
     <div class="mb-3">
       <label for="title" class="form-label">Title</label>
-      <input type="text" name="place[title]" id="title" class="form-control" />
+      <input
+        type="text"
+        name="place[title]"
+        id="title"
+        class="form-control"
+        required />
+      <div class="valid-feedback">Looks good!</div>
+      <div class="invalid-feedback">Please fill this field.</div>
     </div>
 
     <div class="mb-3">
@@ -14,7 +21,10 @@
         type="text"
         name="place[location]"
         id="location"
-        class="form-control" />
+        class="form-control"
+        required />
+      <div class="valid-feedback">Looks good!</div>
+      <div class="invalid-feedback">Please fill this field.</div>
     </div>
 
     <div class="mb-3">
@@ -23,19 +33,61 @@
         type="text"
         name="place[description]"
         id="description"
-        class="form-control" />
+        class="form-control"
+        required />
+      <div class="valid-feedback">Looks good!</div>
+      <div class="invalid-feedback">Please fill this field.</div>
     </div>
 
     <div class="mb-3">
       <label for="price" class="form-label">Price</label>
-      <input type="text" name="place[price]" id="price" class="form-control" />
+      <input
+        type="text"
+        name="place[price]"
+        id="price"
+        class="form-control"
+        required />
+      <div class="valid-feedback">Looks good!</div>
+      <div class="invalid-feedback">Please fill this field.</div>
     </div>
 
     <div class="mb-3">
       <label for="image" class="form-label">Image Url</label>
-      <input type="text" name="place[image]" id="image" class="form-control" />
+      <input
+        type="text"
+        name="place[image]"
+        id="image"
+        class="form-control"
+        required />
+      <div class="valid-feedback">Looks good!</div>
+      <div class="invalid-feedback">Please fill this field.</div>
     </div>
 
     <button type="submit" class="btn btn-success">Save</button>
   </form>
 </div>
+
+<script>
+  (() => {
+    "use strict";
+
+    // Fetch all the forms we want to apply custom Bootstrap validation styles to
+    const forms = document.querySelectorAll(".validated-form");
+
+    // Loop over them and prevent submission
+    Array.from(forms).forEach((form) => {
+      form.addEventListener(
+        "submit",
+        (event) => {
+          if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+
+          form.classList.add("was-validated");
+        },
+        false
+      );
+    });
+  })();
+</script>
