@@ -10,11 +10,13 @@ const app = express();
 
 // models
 const Place = require("./models/place");
+const Review = require("./models/review");
 // const place = require("./models/place");
 // const ExpressError = require("./utils/ErrorHandler");
 
 // schemas
 const { placeSchema } = require("./schemas/place");
+const { reviewSchema } = require("./schemas/review");
 
 // connect to mongoDB
 mongoose
@@ -36,6 +38,16 @@ app.use(methodOverride("_method"));
 
 const validatePlace = (req, res, next) => {
   const { error } = placeSchema.validate(req.body);
+  if (error) {
+    const msg = error.details.map((el) => el.message).join(",");
+    return next(new ErrorHandler(error, 404));
+  } else {
+    next();
+  }
+};
+
+const validateReview = (req, res, next) => {
+  const { error } = reviewSchema.validate(req.body);
   if (error) {
     const msg = error.details.map((el) => el.message).join(",");
     return next(new ErrorHandler(error, 404));
@@ -73,7 +85,7 @@ app.post(
 app.get(
   "/places/:id",
   wrapAsync(async (req, res) => {
-    const place = await Place.findById(req.params.id);
+    const place = await Place.findById(req.params.id).populate("reviews");
     res.render("places/show", { place });
   })
 );
@@ -102,6 +114,31 @@ app.delete(
   wrapAsync(async (req, res) => {
     await Place.findByIdAndDelete(req.params.id);
     res.redirect("/places");
+  })
+);
+
+app.post(
+  "/places/:id/reviews",
+  validateReview,
+  wrapAsync(async (req, res) => {
+    const review = new Review(req.body.review);
+    const place = await Place.findById(req.params.id);
+    place.reviews.push(review);
+    await review.save();
+    await place.save();
+    res.redirect(`/places/${req.params.id}`);
+  })
+);
+
+app.delete(
+  "/places/:place_id/reviews/:review_id",
+  wrapAsync(async (req, res) => {
+    const { place_id, review_id } = req.params;
+    await Place.findByIdAndUpdate(place_id, {
+      $pull: { reviews: review_id },
+    });
+    await Review.findByIdAndDelete(review_id);
+    res.redirect(`/places/${place_id}`);
   })
 );
 
