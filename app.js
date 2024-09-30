@@ -1,7 +1,8 @@
 const ejsMate = require("ejs-mate");
 const express = require("express");
+const session = require("express-session");
+const flash = require("connect-flash");
 const ErrorHandler = require("./utils/ErrorHandler");
-const wrapAsync = require("./utils/wrapAsync");
 const methodOverride = require("method-override");
 const mongoose = require("mongoose");
 const path = require("path");
@@ -20,11 +21,29 @@ mongoose
 app.engine("ejs", ejsMate);
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
-app.use(express.static(path.join(__dirname, "public")));
 
 // middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
+app.use(express.static(path.join(__dirname, "public")));
+app.use(
+  session({
+    secret: "this-is-a-secret-key",
+    resave: false,
+    saveUnitialized: false,
+    cookie: {
+      httpOnly: true,
+      expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    },
+  })
+);
+app.use(flash());
+app.use((req, res, next) => {
+  res.locals.success_msg = req.flash("success_msg");
+  res.locals.error_msg = req.flash("error_msg");
+  next();
+});
 
 app.get("/", (req, res) => {
   res.render("home");
