@@ -6,6 +6,9 @@ const ErrorHandler = require("./utils/ErrorHandler");
 const methodOverride = require("method-override");
 const mongoose = require("mongoose");
 const path = require("path");
+const passport = require("passport");
+const LocalStrategy = require("passport-local");
+const User = require("./models/user");
 const app = express();
 
 // connect to mongoDB
@@ -39,6 +42,16 @@ app.use(
   })
 );
 app.use(flash());
+
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy(User.authenticate()));
+
+// proses passport menyimpan hasil authentication di atas ke session. mengecek apakah sudah login atua belum.
+passport.serializeUser(User.serializeUser()); // setter
+// cara passport mengambil data yang sudah disimpan serialize di dalam session, agar dpt diimplementasikan di middleware
+passport.deserializeUser(User.deserializeUser()); // getter
+
 app.use((req, res, next) => {
   res.locals.success_msg = req.flash("success_msg");
   res.locals.error_msg = req.flash("error_msg");
@@ -49,6 +62,7 @@ app.get("/", (req, res) => {
   res.render("home");
 });
 
+app.use("/", require("./routes/auth"));
 app.use("/places", require("./routes/places"));
 app.use("/places/:place_id/reviews", require("./routes/reviews"));
 
