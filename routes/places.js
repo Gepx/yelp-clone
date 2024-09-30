@@ -2,7 +2,7 @@ const express = require("express");
 const ErrorHandler = require("../utils/ErrorHandler");
 const wrapAsync = require("../utils/wrapAsync");
 const router = express.Router();
-const isValidObjectId = require("../middleware/isValidObjectId");
+const isValidObjectId = require("../middlewares/isValidObjectId");
 
 // models
 const Place = require("../models/place");
