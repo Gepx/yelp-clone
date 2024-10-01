@@ -73,6 +73,14 @@ router.put(
   validatePlace,
   isValidObjectId("/places"),
   wrapAsync(async (req, res) => {
+    const { id } = req.params;
+    let place = await Place.findById(id);
+
+    if (!place.author.equals(req.user._id)) {
+      req.flash("error_msg", "Not authorized");
+      return res.redirect("/places");
+    }
+
     await Place.findByIdAndUpdate(req.params.id, {
       ...req.body.place,
     });
