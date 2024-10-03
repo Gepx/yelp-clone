@@ -38,7 +38,7 @@ module.exports.update = async (req, res) => {
   res.redirect(`/places/${req.params.id}`);
 };
 
-module.exports.destory = async (req, res) => {
+module.exports.destroy = async (req, res) => {
   await Place.findByIdAndDelete(req.params.id);
   req.flash("success_msg", "Place deleted successfully!");
   res.redirect("/places");
