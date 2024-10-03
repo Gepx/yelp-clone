@@ -1,39 +1,39 @@
 const express = require("express");
-const ErrorHandler = require("../utils/ErrorHandler");
 const wrapAsync = require("../utils/wrapAsync");
 const router = express.Router();
 const isValidObjectId = require("../middlewares/isValidObjectId");
 const isAuth = require("../middlewares/isAuth");
 const { isAuthorPlace } = require("../middlewares/isAuthor");
-
-// models
-const Place = require("../models/place");
-
-// schemas
-const { placeSchema } = require("../schemas/place");
+const { validatePlace } = require("../middlewares/validator");
 
 // controllers
 const PlaceController = require("../controllers/places");
 
-const validatePlace = (req, res, next) => {
-  const { error } = placeSchema.validate(req.body);
-  if (error) {
-    const msg = error.details.map((el) => el.message).join(",");
-    return next(new ErrorHandler(error, 404));
-  } else {
-    next();
-  }
-};
-
-router.get("/", wrapAsync(PlaceController.index));
+router
+  .route("/")
+  .get(wrapAsync(PlaceController.index))
+  .post(isAuth, validatePlace, wrapAsync(PlaceController.store));
 
 router.get("/create", isAuth, (req, res) => {
   res.render("places/create");
 });
 
-router.post("/", isAuth, validatePlace, wrapAsync(PlaceController.store));
-
-router.get("/:id", isValidObjectId("/places"), wrapAsync(PlaceController.show));
+router
+  .route("/:id")
+  .get(isValidObjectId("/places"), wrapAsync(PlaceController.show))
+  .put(
+    isAuth,
+    isAuthorPlace,
+    validatePlace,
+    isValidObjectId("/places"),
+    wrapAsync(PlaceController.update)
+  )
+  .delete(
+    isAuth,
+    isAuthorPlace,
+    isValidObjectId("/places"),
+    wrapAsync(PlaceController.destroy)
+  );
 
 router.get(
   "/:id/edit",
@@ -41,23 +41,6 @@ router.get(
   isAuthorPlace,
   isValidObjectId("/places"),
   wrapAsync(PlaceController.edit)
-);
-
-router.put(
-  "/:id",
-  isAuth,
-  isAuthorPlace,
-  validatePlace,
-  isValidObjectId("/places"),
-  wrapAsync(PlaceController.update)
-);
-
-router.delete(
-  "/:id",
-  isAuth,
-  isAuthorPlace,
-  isValidObjectId("/places"),
-  wrapAsync(PlaceController.destroy)
 );
 
 module.exports = router;
