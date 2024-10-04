@@ -1,5 +1,6 @@
 const Place = require("../models/place");
 const fs = require("fs");
+const { geometry } = require("../utils/hereMaps");
 const ExpressError = require("../utils/ErrorHandler");
 
 module.exports.index = async (req, res) => {
@@ -12,9 +13,15 @@ module.exports.store = async (req, res, next) => {
     url: file.path,
     filename: file.filename,
   }));
+
+  const geoData = await geometry(req.body.place.location);
+
+  console.log(geoData);
+
   const place = new Place(req.body.place);
   place.author = req.user._id;
   place.images = images;
+  place.geometry = geoData;
 
   await place.save();
 
