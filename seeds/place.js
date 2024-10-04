@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Place = require("../models/place");
 const { getImageFromUnsplash } = require("../utils/unsplash");
-// const hereMaps = require("../utils/hereMaps");
+const { geometry } = require("../utils/hereMaps");
 
 mongoose
   .connect("mongodb://127.0.0.1/bestpoints")
@@ -144,22 +144,6 @@ async function seedPlaces() {
       image: await getImageFromUnsplash(786923),
     },
     {
-      title: "Taman Safari Indonesia",
-      price: 0,
-      description:
-        "Taman hiburan keluarga dengan berbagai satwa liar di Cisarua, Bogor",
-      location: "Taman Safari Indonesia, Cisarua, West Java",
-      image: await getImageFromUnsplash(786923),
-    },
-    {
-      title: "Gunung Merbabu",
-      price: 50000,
-      description:
-        "Gunung yang terletak di Jawa Tengah dengan pemandangan matahari terbit yang indah",
-      location: "Gunung Merbabu, Central Java",
-      image: await getImageFromUnsplash(786923),
-    },
-    {
       title: "Pulau Lombok",
       price: 0,
       description:
@@ -194,16 +178,23 @@ async function seedPlaces() {
   // }))
 
   try {
-    const newPlace = places.map((place) => {
-      return {
-        ...place,
-        author: "66fa44b4f960621acb83414d",
-        images: {
-          url: "public\\images\\image-1727943982271-147103225.avif",
-          filename: "image-1727943982271-147103225.avif",
-        },
-      };
-    });
+    const newPlace = await Promise.all(
+      places.map(async (place) => {
+        let geoData = await geometry(place.location);
+        if (!geoData) {
+          geoData = { type: "Point", coordinates: [116.32883, -8.90952] };
+        }
+        return {
+          ...place,
+          author: "66fa44b4f960621acb83414d",
+          images: {
+            url: "public\\images\\image-1727943982271-147103225.avif",
+            filename: "image-1727943982271-147103225.avif",
+          },
+          geometry: geoData,
+        };
+      })
+    );
     await Place.deleteMany({});
     await Place.insertMany(newPlace);
     console.log("Data berhasil disimpan");
