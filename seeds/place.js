@@ -195,7 +195,14 @@ async function seedPlaces() {
 
   try {
     const newPlace = places.map((place) => {
-      return { ...place, author: "66fa44b4f960621acb83414d" };
+      return {
+        ...place,
+        author: "66fa44b4f960621acb83414d",
+        images: {
+          url: "public\\images\\image-1727943982271-147103225.avif",
+          filename: "image-1727943982271-147103225.avif",
+        },
+      };
     });
     await Place.deleteMany({});
     await Place.insertMany(newPlace);
