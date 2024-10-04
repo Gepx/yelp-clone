@@ -2,6 +2,7 @@ const Place = require("../models/place");
 const fs = require("fs");
 const { geometry } = require("../utils/hereMaps");
 const ExpressError = require("../utils/ErrorHandler");
+const { getImageFromUnsplash } = require("../utils/unsplash");
 
 module.exports.index = async (req, res) => {
   const places = await Place.find();
@@ -15,8 +16,6 @@ module.exports.store = async (req, res, next) => {
   }));
 
   const geoData = await geometry(req.body.place.location);
-
-  console.log(geoData);
 
   const place = new Place(req.body.place);
   place.author = req.user._id;
@@ -38,6 +37,10 @@ module.exports.show = async (req, res) => {
       },
     })
     .populate("author");
+
+  // const unsplashImageUrl = await getImageFromUnsplash(786923);
+  // place.image = unsplashImageUrl;
+
   res.render("places/show", { place });
 };
 
@@ -47,8 +50,13 @@ module.exports.edit = async (req, res) => {
 };
 
 module.exports.update = async (req, res) => {
-  const place = await Place.findByIdAndUpdate(req.params.id, {
-    ...req.body.place,
+  const { place } = req.body;
+
+  const geoData = await geometry(req.body.place.location);
+
+  const newPlace = await Place.findByIdAndUpdate(req.params.id, {
+    ...place,
+    geometry: geoData,
   });
 
   if (req.files && req.files.length > 0) {
@@ -60,8 +68,8 @@ module.exports.update = async (req, res) => {
       url: file.path,
       filename: file.filename,
     }));
-    place.images = images;
-    await place.save();
+    newPlace.images = images;
+    await newPlace.save();
   }
 
   req.flash("success_msg", "Place updated successfully!");
